@@ -1,6 +1,36 @@
 const app = require('express')();
+const bodyParser = require("body-parser");
+const MongoClient = require("mongodb").MongoClient;
 
-app.get('/', (req, res ) => 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.post('/register', (req, res) => {
+    MongoClient.connect('mongodb://root:example@mongo:27017/', (err, client) => {
+        if (err) throw err;
+
+        const email = req.body.email;
+        const password = req.body.password;
+        const new_user = {'email': email, 'password': password}
+        const db = client.db('star_wars_db')
+        db.collection('users').insert(new_user, (err, result) => {
+            if (err) throw err;
+            client.close();
+            res.json({message: 'user registered'})
+        })
+
+        })
+    console.log(req.body);
+    res.json({ message: `email: ${req.body.email} password: ${req.body.password}`})
+    }
+);
+
+//validate inputs
+//check database 
+//if user exists => error 
+//else => create user
+
+app.get('/', (req, res ) =>
     res.json({ message: 'Docker is easy 🐳' }) 
 );
 
