@@ -2,6 +2,13 @@ const app = require('express')();
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const validator = require('validator');
+const crypto = require('crypto');
+
+crypto.randomBytes(256, (err, buf) => {
+    if (err) throw err;
+    return buf
+    console.log(`${buf.length} bytes of random data: ${buf.toString('hex')}`);
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -51,8 +58,31 @@ app.post('/register', (req, res) => {
     })
 });
 
+app.post('/login', (req, res) => {
+    MongoClient.connect('mongodb://root:example@mongo:27017/', async (err, client) => {
+        const hour_in_miliseconds = 3600000
+        const email = req.body.email;
+        const password = req.body.password;
+        const db = client.db('star_wars_db')
+        const query = await db.collection('users').findOne({ 'email': email, 'password': password })
+        if (query) {
+            const session_token = crypto.randomBytes(256).toString('hex')
+            db.collection('sessions').insert({
+                'user': email,
+                'token': session_token,
+                'timestamp': new Date.now(),
+                'expiry_date': new Date.now() + hour_in_miliseconds
+            })
+            res.json({ 'token': session_token })
+        } else {
+            res.status(401)
+            res.json({ message: 'wrong email/password' })
+        }
+    })
+});
+
 app.get('/', (req, res) =>
-    res.json({ message: 'Docker is easy 🐳' })
+    res.json({ message: 'Hello!' })
 );
 
 app.get('/films', (req, res) =>
