@@ -4,12 +4,6 @@ const MongoClient = require("mongodb").MongoClient;
 const validator = require('validator');
 const crypto = require('crypto');
 
-crypto.randomBytes(256, (err, buf) => {
-    if (err) throw err;
-    return buf
-    console.log(`${buf.length} bytes of random data: ${buf.toString('hex')}`);
-});
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
